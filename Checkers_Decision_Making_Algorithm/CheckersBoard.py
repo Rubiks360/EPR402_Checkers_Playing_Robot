@@ -50,7 +50,7 @@ class CheckersBoard:
             [-1, 0, -1, 0, -1, 0, -1, 0]
         ])
 
-    def print_board_layout(self):
+    def print_board_layout(self, board: np.ndarray):
         horizontal_line_border = "  #########################################"
         horizontal_line_normal = "  #---------------------------------------#"
         vertical_line_border = "#"
@@ -67,18 +67,18 @@ class CheckersBoard:
             new_column_print = str(r) + " " + vertical_line_border + space
             for c in range(self.num_columns):
 
-                if self.board[r][c] == 0:
+                if board[r][c] == 0:
                     # no piece in that location
                     new_column_print += "  "
                 else:
-                    if self.board[r][c] < 0:
+                    if board[r][c] < 0:
                         # dark
                         new_column_print += "B"
                     else:
                         # light
                         new_column_print += "W"
 
-                    if self.board[r][c] % 2 == 0:
+                    if board[r][c] % 2 == 0:
                         new_column_print += "K"
                     else:
                         new_column_print += " "
@@ -264,16 +264,16 @@ class CheckersBoard:
         :param board:
         :return:
         """
-        print("looking for", "light" if light_side else "dark", "side possible moves")
+        # print("looking for", "light" if light_side else "dark", "side possible moves")
 
         # get any force jumps for pieces
         force_jumps = self.check_force_jump_moves(light_side, board)
 
         if len(force_jumps) > 0:
-            print("YES force jumps must be taken")
+            # print("YES force jumps must be taken")
             return force_jumps
         else:
-            print("No force jumps, looking for normal moves")
+            # print("No force jumps, looking for normal moves")
 
             all_possible_moves = []
             for r in self.rows:
@@ -286,21 +286,7 @@ class CheckersBoard:
 
             return all_possible_moves
 
-    def score_board_after_moves(self, moves: list, board: np.ndarray) -> int:
-        start_piece = board[moves[0][0]][moves[0][1]]
-        for i in range(len(moves)):
-            board[moves[i][0]][moves[i][1]] = 0
-
-            # check for a jump move
-            if (i > 0) & ((moves[i-1][0] - moves[i][0]) % 2 == 0):
-                # getting grid location of jumped piece
-                r = (moves[i][0] + moves[i - 1][0]) >> 1
-                c = (moves[i][1] + moves[i - 1][1]) >> 1
-                board[r][c] = 0
-
-        # moving piece to last grid location
-        board[moves[-1][0]][moves[-1][1]] = start_piece
-
+    def score_board(self, board: np.ndarray) -> int:
         total = 0
         for r in self.rows:
             for c in self.columns[r % 2]:
@@ -308,28 +294,34 @@ class CheckersBoard:
 
         return total
 
-    def execute_move(self, moves):
+    def score_board_after_moves(self, moves: list, board: np.ndarray) -> int:
+        board = self.execute_move(moves, board.copy())
+        return self.score_board(board)
+
+    def execute_move(self, moves, board: np.ndarray) -> np.ndarray:
         # test if it is a valid move!!!!!!
 
-        print("Doing move ", moves)
-        start_piece = self.board[moves[0][0]][moves[0][1]]
+        # print("Doing move ", moves)
+        start_piece = board[moves[0][0]][moves[0][1]]
         for i in range(len(moves)):
-            self.board[moves[i][0]][moves[i][1]] = 0
+            board[moves[i][0]][moves[i][1]] = 0
 
             # check for a jump move
             if (i > 0) & ((moves[i - 1][0] - moves[i][0]) % 2 == 0):
                 # getting grid location of jumped piece
                 r = (moves[i][0] + moves[i - 1][0]) >> 1
                 c = (moves[i][1] + moves[i - 1][1]) >> 1
-                self.board[r][c] = 0
+                board[r][c] = 0
 
         # moving piece to last grid location
-        if ((moves[-1][0] == 0) | (moves[-1][0] == 7)) & (start_piece % 2 == 1):
+        if ( ((moves[-1][0] == 0) & (start_piece < 0)) | ((moves[-1][0] == 7) & (start_piece > 0))) & (start_piece % 2 == 1):
             # king promotion of man
-            print("King Promotion")
-            self.board[moves[-1][0]][moves[-1][1]] = start_piece * 2
+            # print("King Promotion")
+            board[moves[-1][0]][moves[-1][1]] = start_piece * 2
         else:
-            self.board[moves[-1][0]][moves[-1][1]] = start_piece
+            board[moves[-1][0]][moves[-1][1]] = start_piece
+
+        return board
 
     def print_moves(self, pieces_moves: list):
         if len(pieces_moves) > 0:
@@ -345,3 +337,21 @@ class CheckersBoard:
 
                     option_count += 1
                 print("############################")
+
+    def check_game_end(self, board: np.ndarray):
+        see_dark = False
+        see_light = False
+
+        for r in self.rows:
+            for c in self.columns[r % 2]:
+                if board[r][c] > 0:
+                    see_light = True
+                elif board[r][c] < 0:
+                    see_dark = True
+
+                # if both colours are still present, game has not ended
+                if see_dark & see_light:
+                    return False
+
+        # just seeing one colour of no colour sides, game has ended
+        return True
