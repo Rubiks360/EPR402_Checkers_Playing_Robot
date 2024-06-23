@@ -90,6 +90,8 @@ def calculate_move_min_max(depth: int, max_depth: int, my_game, game_state: np.n
                 # OR select the first equally best move
                 # selected_move = 0
 
+                print(saved_scores, saved_moves)
+
                 # only returning the best move
                 return best_score, best_moves[selected_move]
 

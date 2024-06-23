@@ -1,63 +1,71 @@
 from CheckersBoard import *
+from MinMax import *
+
 
 if __name__ == '__main__':
-    my_board = CheckersBoard()
+    my_game = CheckersBoard()
 
-    computer_turn = False
     game_end = False
 
-    print("Player is colour Black\n")
+    computer_light_side = False
+
+    if computer_light_side:
+        print("Player is colour Black\nPlayer moves first")
+        computer_turn = False
+    else:
+        print("Player is colour White\nComputer moves first")
+        computer_turn = True
 
     while not game_end:
-        my_board.print_board_layout()
+        my_game.print_board_layout(my_game.board)
         if computer_turn:
-            print("Computer turn")
+            print("Computers turn")
+            _, moves = calculate_move_min_max(5, 5, my_game, my_game.board.copy(), computer_light_side, -25, 25)
 
-            all_piece_moves = my_board.calculate_side_possible_moves(True, my_board.board.copy())
-            max = -1000
-            max_moves = []
-            if len(all_piece_moves) > 0:
-                # my_board.print_moves(all_piece_moves)
-                all_piece_moves_score = []
-                for p in all_piece_moves:
-                    for m in p:
-                        all_piece_moves_score.append(my_board.score_board_after_moves(m, my_board.board.copy()))
-
-                        if max == all_piece_moves_score[-1]:
-                            max_moves.append(m)
-                        elif max < all_piece_moves_score[-1]:
-                            max = all_piece_moves_score[-1]
-                            max_moves = [m]
-
-                # select one of the scores that maxes game
-                move_num = np.random.randint(0, len(max_moves))
-                my_board.execute_move(max_moves[move_num])
+            if len(moves) > 0:
+                print("Computer move:", moves)
+                my_game.board = my_game.execute_move(moves, my_game.board)
             else:
-                print("No moves available for computer, player wins!!!")
+                print("Computer has no more moves, player wins!!!")
                 game_end = True
 
             computer_turn = False
         else:
-            input_player = input("Player turn, ender moves (r, c, ...): ")
-
-            r_c_moves = input_player.split()
-
-            moves = []
-            for i in range(0, len(r_c_moves), 2):
-                moves.append([int(r_c_moves[i]), int(r_c_moves[i + 1])])
-
-            if len(moves) > 0:
-                my_board.execute_move(moves)
-            else:
-                print("Player surrendered, computer wins!!!")
+            if my_game.check_game_end(my_game.board):
+                print("Player has no possible moves left.\nPlayer Lost, computer wins!!!")
                 game_end = True
+            else:
+                legal_player_move = False
+                possible_moves = my_game.calculate_side_possible_moves(not computer_light_side, my_game.board.copy())
+                while not legal_player_move:
+                    input_player = input("Player turn, ender moves (r, c, ...): ")
 
-            computer_turn = True
+                    r_c_moves = input_player.split()
+                    moves = []
+                    if len(r_c_moves) % 2 == 0:
+                        for i in range(0, len(r_c_moves), 2):
+                            moves.append([int(r_c_moves[i]), int(r_c_moves[i + 1])])
+                    else:
+                        # give a default error move
+                        moves.append([0, 0])
 
-        print("===========================================================")
-        print()
-        print()
-        print()
+                    if len(moves) > 0:
+                        for p in possible_moves:
+                            if moves in p:
+                                legal_player_move = True
+
+                        if legal_player_move:
+                            print("Player move is legal!")
+                            my_game.board = my_game.execute_move(moves, my_game.board)
+                            computer_turn = True
+                        else:
+                            print("Player move illegal, try another move!")
+                    else:
+                        print("Player surrendered, computer wins!!!")
+                        legal_player_move = True
+                        game_end = True
+
+        print("===========================================================\n\n\n")
         print("===========================================================")
 
     print("GAME OVER")
