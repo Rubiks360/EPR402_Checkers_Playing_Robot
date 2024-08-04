@@ -36,9 +36,23 @@ class CheckersBoard:
 
         self.num_rows = 8
         self.num_columns = 8
+
+        # list of row and column locations of pieces
         self.rows = np.arange(0, self.num_rows, 1)
         self.columns = np.array([np.arange(1, self.num_columns, 2), np.arange(0, self.num_columns, 2)])
 
+        self.board = np.array([
+            [0, 1, 0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 0, 1, 0, 1, 0],
+            [0, 1, 0, 1, 0, 1, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [-1, 0, -1, 0, -1, 0, -1, 0],
+            [0, -1, 0, -1, 0, -1, 0, -1],
+            [-1, 0, -1, 0, -1, 0, -1, 0]
+        ])
+
+    def reset_board(self):
         self.board = np.array([
             [0, 1, 0, 1, 0, 1, 0, 1],
             [1, 0, 1, 0, 1, 0, 1, 0],
@@ -294,12 +308,12 @@ class CheckersBoard:
 
         return total
 
-    def score_board_after_moves(self, moves: list, board: np.ndarray) -> int:
-        board = self.execute_move(moves, board.copy())
-        return self.score_board(board)
-
     def execute_move(self, moves, board: np.ndarray) -> np.ndarray:
-        # test if it is a valid move!!!!!!
+        # Add execution move
+        # if normal move = n-num of points
+        # if jump move = n-num of points for men / king
+        # if men promotion to king = n-num of points
+        # if multiple jumps = n-num of points
 
         # print("Doing move ", moves)
         start_piece = board[moves[0][0]][moves[0][1]]

@@ -1,5 +1,6 @@
 from CheckersBoard import *
 from MinMax import *
+import time
 
 
 if __name__ == '__main__':
@@ -20,7 +21,10 @@ if __name__ == '__main__':
         my_game.print_board_layout(my_game.board)
         if computer_turn:
             print("Computers turn")
+            start = time.time()
             _, moves = calculate_move_min_max(5, 5, my_game, my_game.board.copy(), computer_light_side, -25, 25)
+            end = time.time()
+            print("Computer found its best move in", end - start, "s")
 
             if len(moves) > 0:
                 print("Computer move:", moves)
@@ -38,7 +42,7 @@ if __name__ == '__main__':
                 legal_player_move = False
                 possible_moves = my_game.calculate_side_possible_moves(not computer_light_side, my_game.board.copy())
                 while not legal_player_move:
-                    input_player = input("Player turn, ender moves (r, c, ...): ")
+                    input_player = input("Player turn, ender moves (r1, c1, r2, c2, ...):\n")
 
                     r_c_moves = input_player.split()
                     moves = []

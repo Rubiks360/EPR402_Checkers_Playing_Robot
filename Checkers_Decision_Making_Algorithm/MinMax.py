@@ -23,8 +23,8 @@ def calculate_move_min_max(depth: int, max_depth: int, my_game, game_state: np.n
         if len(all_piece_moves) > 0:
             # go through moves and call min max
 
-            max_score = -25
-            min_score = 25
+            max_score = -np.inf
+            min_score = np.inf
 
             end_search = False
             # for each piece that can move
@@ -85,12 +85,12 @@ def calculate_move_min_max(depth: int, max_depth: int, my_game, game_state: np.n
                         best_moves.append(saved_moves[score_index])
 
                 # select one of best moves at random
-                selected_move = np.random.randint(0, len(best_moves))
+                # selected_move = np.random.randint(0, len(best_moves))
 
                 # OR select the first equally best move
-                # selected_move = 0
+                selected_move = 0
 
-                print(saved_scores, saved_moves)
+                # print(saved_scores, saved_moves)
 
                 # only returning the best move
                 return best_score, best_moves[selected_move]
