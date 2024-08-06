@@ -35,11 +35,13 @@ opponent_ai_name = "Cobra-AI"
 print("Start Simulation")
 
 # simulation statistics
-NUM_GAMES = 100
+NUM_GAMES = 300
 num_my_ai_wins = 0
 num_opponent_ai_wins = 0
 num_draws = 0
 num_error_games = 0
+
+print_output = False
 
 # run multiple games
 for n_game in range(NUM_GAMES):
@@ -56,8 +58,6 @@ for n_game in range(NUM_GAMES):
         computer_light_side = False
     ''' OR '''
     # computer_light_side = False
-
-    print_output = False
 
     if computer_light_side:
         print(opponent_ai_name, " is colour Black\n",
@@ -80,11 +80,12 @@ for n_game in range(NUM_GAMES):
     while not game_end:
         if computer_turn:
             print(my_ai_name, "turn") if print_output else None
-            _, moves = calculate_move_min_max(5, 5, my_game, my_game.board.copy(), computer_light_side, -np.inf, np.inf)
+            # _, moves = calculate_move_min_max(5, my_game, my_game.board.copy(), computer_light_side, -np.inf, np.inf, 0)
+            _, moves = my_game.get_best_move_alpha_beta_search(2, computer_light_side)
 
             if len(moves) > 0:
                 print(my_ai_name, "move:", moves) if print_output else None
-                my_game.board = my_game.execute_move(moves, my_game.board)
+                my_game.board, _ = my_game.execute_move(moves, my_game.board)
 
                 # create cobra-AI action to update the board by executing computer move
                 opponent_AI_move = DAction("Move", (moves[0][0], moves[0][1]), (moves[1][0], moves[1][1]), None, False)
@@ -141,9 +142,9 @@ for n_game in range(NUM_GAMES):
 
                     possible_moves = my_game.calculate_side_possible_moves(not computer_light_side, my_game.board.copy())
                     legal_player_move = False
-                    for p in possible_moves:
-                        if move_translate in p:
-                            legal_player_move = True
+
+                    if move_translate in possible_moves:
+                        legal_player_move = True
                 else:
                     legal_player_move = False
 
@@ -151,7 +152,7 @@ for n_game in range(NUM_GAMES):
                     opponent_AI.apply_action(cobra_best_move)
                     opponent_AI.switch_turn()
                     # execute Cobra-AI move on game engine
-                    my_game.board = my_game.execute_move(move_translate, my_game.board)
+                    my_game.board, _ = my_game.execute_move(move_translate, my_game.board)
                 else:
                     if not cobra_best_move:
                         # opponent has no more moves, my-ai wins
@@ -214,4 +215,7 @@ print("Number of", my_ai_name, "wins =", num_my_ai_wins)
 print("Number of", opponent_ai_name, "wins =", num_opponent_ai_wins)
 print("Number ERRORS GAMES =", num_error_games)
 
-print("Win/Draw rate = ", ((num_draws + num_my_ai_wins) / (NUM_GAMES - num_error_games) * 100), "%")
+if (NUM_GAMES - num_error_games) == 0:
+    print("Only error games")
+else:
+    print("Win/Draw rate = ", ((num_draws + num_my_ai_wins) / (NUM_GAMES - num_error_games) * 100), "%")
