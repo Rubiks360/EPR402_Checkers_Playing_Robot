@@ -27,8 +27,9 @@ if __name__ == '__main__':
         if computer_turn:
             print("Computers turn")
             start = time.time()
-            _, moves = calculate_move_min_max(5, my_game, my_game.board.copy(), computer_light_side, -np.inf, np.inf, 0)
-            print("Computer move score =", _)
+            # _, moves = calculate_move_min_max(5, my_game, my_game.board.copy(), computer_light_side, -np.inf, np.inf, 0)
+            _, moves = my_game.get_best_move_alpha_beta_search(2, computer_light_side)
+            # print("Computer move score =", _)
             end = time.time()
             print("Computer found its best move in", end - start, "s")
 
@@ -41,12 +42,13 @@ if __name__ == '__main__':
 
             computer_turn = False
         else:
-            if my_game.check_game_end(my_game.board):
+            possible_moves = my_game.calculate_side_possible_moves(not computer_light_side, my_game.board.copy())
+            if my_game.check_game_end(my_game.board) | (len(possible_moves) == 0):
                 print("Player has no possible moves left.\nPlayer Lost, computer wins!!!")
                 game_end = True
             else:
                 legal_player_move = False
-                possible_moves = my_game.calculate_side_possible_moves(not computer_light_side, my_game.board.copy())
+
                 while not legal_player_move:
                     input_player = input("Player turn, ender moves (r1, c1, r2, c2, ...):\n")
 
@@ -60,9 +62,8 @@ if __name__ == '__main__':
                         moves.append([0, 0])
 
                     if len(moves) > 0:
-                        for p in possible_moves:
-                            if moves in p:
-                                legal_player_move = True
+                        if moves in possible_moves:
+                            legal_player_move = True
 
                         if legal_player_move:
                             print("Player move is legal!")

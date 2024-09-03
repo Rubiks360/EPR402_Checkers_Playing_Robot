@@ -35,7 +35,7 @@ opponent_ai_name = "Cobra-AI"
 print("Start Simulation")
 
 # simulation statistics
-NUM_GAMES = 300
+NUM_GAMES = 5
 num_my_ai_wins = 0
 num_opponent_ai_wins = 0
 num_draws = 0
