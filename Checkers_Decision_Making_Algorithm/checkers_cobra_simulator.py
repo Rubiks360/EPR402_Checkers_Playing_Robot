@@ -5,6 +5,8 @@ from MinMax import *
 from cobradraughts.core.DraughtsBrain import DraughtsBrain
 from cobradraughts.core.DAction import DAction
 
+import time
+
 weights1 = {'PIECE':400,
           'KING':1200,
           'BACK':10,
@@ -29,19 +31,21 @@ weights2 = {'PIECE':400,
 my_game = CheckersBoard()
 my_ai_name = "Home-AI"
 
-opponent_AI = DraughtsBrain(weights1, 2, weights2, verbose=True)
+opponent_AI = DraughtsBrain(weights1, 4, weights2, verbose=True)
 opponent_ai_name = "Cobra-AI"
 
 print("Start Simulation")
 
 # simulation statistics
-NUM_GAMES = 5
+NUM_GAMES = 1000
 num_my_ai_wins = 0
 num_opponent_ai_wins = 0
 num_draws = 0
 num_error_games = 0
 
 print_output = False
+
+start = time.time()
 
 # run multiple games
 for n_game in range(NUM_GAMES):
@@ -81,7 +85,7 @@ for n_game in range(NUM_GAMES):
         if computer_turn:
             print(my_ai_name, "turn") if print_output else None
             # _, moves = calculate_move_min_max(5, my_game, my_game.board.copy(), computer_light_side, -np.inf, np.inf, 0)
-            _, moves = my_game.get_best_move_alpha_beta_search(2, computer_light_side)
+            _, moves = my_game.get_best_move_alpha_beta_search(3, computer_light_side)
 
             if len(moves) > 0:
                 print(my_ai_name, "move:", moves) if print_output else None
@@ -196,16 +200,19 @@ for n_game in range(NUM_GAMES):
 
     if game_end_message == 'Draw':
         num_draws += 1
-        print("Game is a Draw")
+        print(n_game, "Game is a Draw")
     elif game_end_message == my_ai_name:
         num_my_ai_wins += 1
-        print("Winner is", my_ai_name)
+        print(n_game, "Winner is", my_ai_name)
     elif game_end_message == opponent_ai_name:
         num_opponent_ai_wins += 1
-        print("Winner is", opponent_ai_name)
+        print(n_game, "Winner is", opponent_ai_name)
     else:
         num_error_games += 1
 
+end = time.time()
+print("Simulation time =", end - start, "s")
+print("Time per game =", (end - start) / NUM_GAMES, "s")
 
 print()
 print("===================================")

@@ -30,7 +30,7 @@ class CheckersBoard:
         |   |                       |
         r   |                       |
         |   |                       |
-        ↓   |                       |
+        |   |                       |
             |       Dark side       |
         7   -------------------------
         """
@@ -74,6 +74,53 @@ class CheckersBoard:
             [0, -1, 0, -1, 0, -1, 0, -1],
             [-1, 0, -1, 0, -1, 0, -1, 0]
         ])
+
+    def board_to_string(self, board):
+        # comma seperated values
+        board_string = ""
+
+        for r in range(self.num_rows):
+            for c in range(self.num_columns):
+                if len(board_string) != 0:
+                    board_string = board_string + ","
+
+                board_string = board_string + str(board[r][c])
+
+        return board_string
+
+    def string_to_board(self, board_string):
+        temp_board = board_string
+
+        count_row = 0
+        count_col = 0
+
+        new_board = []
+        new_row = []
+
+        while (len(temp_board) > 0):
+            index = temp_board.find(',')
+            if (index < 0):
+                new_row.append(int(temp_board))
+                new_board.append(new_row)
+                break
+            else:
+                new_row.append(int(temp_board[0:index]))
+                temp_board = temp_board[index+1:]
+
+                count_col += 1
+
+                if count_col == 8:
+                    count_row += 1
+                    count_col = 0
+
+                    new_board.append(new_row)
+                    new_row = []
+
+        return np.array(new_board)
+
+    def change_board_from_string(self, new_board_string):
+        new_board = self.string_to_board(new_board_string)
+        self.board = np.array(new_board)
 
     def print_board_layout(self, board: np.ndarray):
         horizontal_line_border = "  #########################################"
@@ -325,10 +372,10 @@ class CheckersBoard:
         # Execution move scoring
         # if normal move = 0 extra points
         # if jump move = (jump man) 10, (jump king) 30 [for every jump add values]
-        score_jump_man = 10
+        score_jump_man = 20
         score_jump_king = 30
         # if men promotion to king = 15 points
-        score_promote = 15
+        score_promote = 10
 
         total_move_execution_score = 0
 
@@ -362,6 +409,11 @@ class CheckersBoard:
             total_move_execution_score += score_promote
         else:
             board[moves[-1][0]][moves[-1][1]] = start_piece
+
+        # after the move is executed, test of end of game
+        # if end of game score max or min game end value
+        if self.check_game_end(board):
+            total_move_execution_score = np.inf
 
         # invert score to minimize the dark side score
         if start_piece < 0:
@@ -404,10 +456,20 @@ class CheckersBoard:
         possible_moves = self.calculate_side_possible_moves(max_player_turn, self.board.copy())
 
         # test if just the board needs to be scores
-        if (max_depth == 0) | (len(possible_moves) == 0):
+        if len(possible_moves) == 0:
             # if no moves are available or looking at the state only (depth = 0)
+            # return self.score_board(self.board), []
             ''' can add big value to show a win or lose '''
-            return self.score_board(self.board), []
+            if max_player_turn:
+                # if it is the max players turn, and no move are left, the min player wins
+                return -1 * np.inf, []
+            else:
+                # if it is the min players turn, and no move are left, the max player wins
+                return np.inf, []
+        elif max_depth == 0:
+            # no search depth specified, just play a random move from the available moves
+            random_move = np.random.randint(0, len(possible_moves))
+            return 0, possible_moves[random_move]
         else:
             move_scores = []
             if max_player_turn:
@@ -439,39 +501,45 @@ class CheckersBoard:
     def get_max_scoring_move(self, board: np.ndarray, move: list, depth: int, alpha: int, beta: int, move_execution_score: int) -> int:
         new_state, new_move_score = self.execute_move(move, board.copy())
 
+        new_move_score += move_execution_score
         if depth == 0:
             # only evaluate state
-            return self.score_board(new_state) + new_move_score
+            # return self.score_board(new_state) + new_move_score
+            return new_move_score
         else:
-            v = -np.inf
             possible_moves = self.calculate_side_possible_moves(True, new_state.copy())
 
+            v = -np.inf
             for m in possible_moves:
-                v = max(self.get_min_scoring_move(new_state.copy(), m, depth - 1, alpha, beta, move_execution_score), v)
+                v = max(self.get_min_scoring_move(new_state.copy(), m, depth - 1, alpha, beta, new_move_score), v)
 
                 if v >= beta:
                     return v
 
-                alpha = max(alpha, v)
+                # alpha = max(alpha, v)
 
+            # if no moves were made the min player wins, returning -inf
             return v
 
     def get_min_scoring_move(self, board: np.ndarray, move: list, depth: int, alpha: int, beta: int, move_execution_score: int) -> int:
         new_state, new_move_score = self.execute_move(move, board.copy())
 
+        new_move_score += move_execution_score
         if depth == 0:
             # only evaluate state
-            return self.score_board(new_state) + new_move_score
+            # return self.score_board(new_state) + new_move_score
+            return new_move_score
         else:
             v = np.inf
             possible_moves = self.calculate_side_possible_moves(False, new_state.copy())
 
             for m in possible_moves:
-                v = min(self.get_max_scoring_move(new_state.copy(), m, depth - 1, alpha, beta, move_execution_score), v)
+                v = min(self.get_max_scoring_move(new_state.copy(), m, depth - 1, alpha, beta, new_move_score), v)
 
                 if v <= alpha:
                     return v
 
-                beta = min(beta, v)
+                # beta = min(beta, v)
 
+            # if no moves were made the max player wins, returning inf
             return v
