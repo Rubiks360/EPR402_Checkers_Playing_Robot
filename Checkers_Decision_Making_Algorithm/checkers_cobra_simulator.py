@@ -27,11 +27,16 @@ weights2 = {'PIECE':400,
           'KFRONT':60,
           'MOB':0}
 
+# depth = 0 to 4
+my_ai_search_depth = 3
+# depth = 1 to 5
+opponent_ai_search_depth = 1
+
 # initialise AIs
 my_game = CheckersBoard()
 my_ai_name = "Home-AI"
 
-opponent_AI = DraughtsBrain(weights1, 4, weights2, verbose=True)
+opponent_AI = DraughtsBrain(weights1, opponent_ai_search_depth, weights2, verbose=True)
 opponent_ai_name = "Cobra-AI"
 
 print("Start Simulation")
@@ -45,7 +50,10 @@ num_error_games = 0
 
 print_output = False
 
-start = time.time()
+time_all_game_start = time.time()
+
+total_time_per_move = 0
+total_number_of_moves = 0
 
 # run multiple games
 for n_game in range(NUM_GAMES):
@@ -84,8 +92,13 @@ for n_game in range(NUM_GAMES):
     while not game_end:
         if computer_turn:
             print(my_ai_name, "turn") if print_output else None
-            # _, moves = calculate_move_min_max(5, my_game, my_game.board.copy(), computer_light_side, -np.inf, np.inf, 0)
-            _, moves = my_game.get_best_move_alpha_beta_search(3, computer_light_side)
+
+            time_move_start = time.time()
+            _, moves = my_game.get_best_move_alpha_beta_search(my_ai_search_depth, computer_light_side)
+            time_move_end = time.time()
+
+            total_time_per_move += time_move_end - time_move_start
+            total_number_of_moves += 1
 
             if len(moves) > 0:
                 print(my_ai_name, "move:", moves) if print_output else None
@@ -210,12 +223,13 @@ for n_game in range(NUM_GAMES):
     else:
         num_error_games += 1
 
-end = time.time()
-print("Simulation time =", end - start, "s")
-print("Time per game =", (end - start) / NUM_GAMES, "s")
+time_all_game_end = time.time()
 
 print()
 print("===================================")
+print("Home AI depth =", my_ai_search_depth)
+print("Cobra AI depth =", opponent_ai_search_depth)
+print()
 print("Number of games =", NUM_GAMES)
 print("Number of draws =", num_draws)
 print("Number of", my_ai_name, "wins =", num_my_ai_wins)
@@ -226,3 +240,11 @@ if (NUM_GAMES - num_error_games) == 0:
     print("Only error games")
 else:
     print("Win/Draw rate = ", ((num_draws + num_my_ai_wins) / (NUM_GAMES - num_error_games) * 100), "%")
+
+print()
+print("Simulation time =", time_all_game_end - time_all_game_start, "s")
+# print("Time per game =", (time_all_game_end - time_all_game_start) / NUM_GAMES, "s")
+
+print("Average number of moves per game =", total_number_of_moves / NUM_GAMES)
+print("Average time per move =", total_time_per_move / total_number_of_moves, "s")
+
