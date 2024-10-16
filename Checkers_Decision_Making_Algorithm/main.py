@@ -1,7 +1,6 @@
 import numpy as np
 
 from CheckersBoard import *
-from MinMax import *
 import time
 
 
@@ -19,8 +18,8 @@ if __name__ == '__main__':
         print("Player is colour White\nComputer moves first")
         computer_turn = True
 
-    my_game.get_best_move_alpha_beta_search(2, computer_light_side)
-    print("TEST#########################")
+    # my_game.get_best_move_alpha_beta_search(5, computer_light_side)
+    # print("TEST#########################")
 
     while not game_end:
         my_game.print_board_layout(my_game.board)
@@ -28,8 +27,8 @@ if __name__ == '__main__':
             print("Computers turn")
             start = time.time()
             # _, moves = calculate_move_min_max(5, my_game, my_game.board.copy(), computer_light_side, -np.inf, np.inf, 0)
-            _, moves = my_game.get_best_move_alpha_beta_search(2, computer_light_side)
-            # print("Computer move score =", _)
+            _, moves = my_game.get_best_move_alpha_beta_search(4, computer_light_side)
+            print("Computer move score =", _)
             end = time.time()
             print("Computer found its best move in", end - start, "s")
 

@@ -1,6 +1,5 @@
 import numpy as np
 
-
 '''
 Chosen Values
 =============
@@ -18,6 +17,7 @@ Empty cell = 0
 '''
 
 ALPHA_BETA_ENABLE = True
+
 
 class CheckersBoard:
     def __init__(self):
@@ -105,7 +105,7 @@ class CheckersBoard:
                 break
             else:
                 new_row.append(int(temp_board[0:index]))
-                temp_board = temp_board[index+1:]
+                temp_board = temp_board[index + 1:]
 
                 count_col += 1
 
@@ -402,7 +402,8 @@ class CheckersBoard:
                 board[r][c] = 0
 
         # moving piece to last grid location
-        if (((moves[-1][0] == 0) & (start_piece < 0)) | ((moves[-1][0] == 7) & (start_piece > 0))) & (start_piece % 2 == 1):
+        if (((moves[-1][0] == 0) & (start_piece < 0)) | ((moves[-1][0] == 7) & (start_piece > 0))) & (
+                start_piece % 2 == 1):
             # king promotion of man
             # print("King Promotion")
             board[moves[-1][0]][moves[-1][1]] = start_piece * 2
@@ -455,6 +456,8 @@ class CheckersBoard:
         # calculate the possible moves from the current game state
         possible_moves = self.calculate_side_possible_moves(max_player_turn, self.board.copy())
 
+        # print("Depth=", max_depth, ", nodes=", len(possible_moves))
+
         # test if just the board needs to be scores
         if len(possible_moves) == 0:
             # if no moves are available or looking at the state only (depth = 0)
@@ -474,11 +477,13 @@ class CheckersBoard:
             move_scores = []
             if max_player_turn:
                 for m in possible_moves:
-                    move_scores.append(self.get_min_scoring_move(self.board.copy(), m, max_depth - 1, -np.inf, np.inf, 0))
+                    move_scores.append(
+                        self.get_min_scoring_move(self.board.copy(), m, max_depth - 1, -np.inf, np.inf, 0))
                 best_possible_score = max(move_scores)
             else:
                 for m in possible_moves:
-                    move_scores.append(self.get_max_scoring_move(self.board.copy(), m, max_depth - 1, -np.inf, np.inf, 0))
+                    move_scores.append(
+                        self.get_max_scoring_move(self.board.copy(), m, max_depth - 1, -np.inf, np.inf, 0))
                 best_possible_score = min(move_scores)
 
             # save the best moves in the selection list
@@ -498,7 +503,8 @@ class CheckersBoard:
             # only returning the best move
             return best_possible_score, best_moves[selected_move]
 
-    def get_max_scoring_move(self, board: np.ndarray, move: list, depth: int, alpha: int, beta: int, move_execution_score: int) -> int:
+    def get_max_scoring_move(self, board: np.ndarray, move: list, depth: int, alpha: int, beta: int,
+                             move_execution_score: int) -> int:
         new_state, new_move_score = self.execute_move(move, board.copy())
 
         new_move_score += move_execution_score
@@ -508,20 +514,24 @@ class CheckersBoard:
             return new_move_score
         else:
             possible_moves = self.calculate_side_possible_moves(True, new_state.copy())
+            # print("Depth=", depth, ", nodes=", len(possible_moves))
 
-            v = -np.inf
+            v_max = -np.inf
             for m in possible_moves:
-                v = max(self.get_min_scoring_move(new_state.copy(), m, depth - 1, alpha, beta, new_move_score), v)
+                v_new = self.get_min_scoring_move(new_state.copy(), m, depth - 1, alpha, beta, new_move_score)
+                v_max = max(v_max, v_new)
 
-                if v >= beta:
-                    return v
+                alpha = max(alpha, v_new)
 
-                # alpha = max(alpha, v)
+                if (beta <= alpha) & (ALPHA_BETA_ENABLE is True):
+                    # print("###########")
+                    return v_max
 
             # if no moves were made the min player wins, returning -inf
-            return v
+            return v_max
 
-    def get_min_scoring_move(self, board: np.ndarray, move: list, depth: int, alpha: int, beta: int, move_execution_score: int) -> int:
+    def get_min_scoring_move(self, board: np.ndarray, move: list, depth: int, alpha: int, beta: int,
+                             move_execution_score: int) -> int:
         new_state, new_move_score = self.execute_move(move, board.copy())
 
         new_move_score += move_execution_score
@@ -530,16 +540,19 @@ class CheckersBoard:
             # return self.score_board(new_state) + new_move_score
             return new_move_score
         else:
-            v = np.inf
             possible_moves = self.calculate_side_possible_moves(False, new_state.copy())
+            # print("Depth=", depth, ", nodes=", len(possible_moves))
 
+            v_min = np.inf
             for m in possible_moves:
-                v = min(self.get_max_scoring_move(new_state.copy(), m, depth - 1, alpha, beta, new_move_score), v)
+                v_new = self.get_max_scoring_move(new_state.copy(), m, depth - 1, alpha, beta, new_move_score)
+                v_min = min(v_min, v_new)
 
-                if v <= alpha:
-                    return v
+                beta = min(beta, v_new)
 
-                # beta = min(beta, v)
+                if (beta <= alpha) & (ALPHA_BETA_ENABLE is True):
+                    # print("###########")
+                    return v_min
 
             # if no moves were made the max player wins, returning inf
-            return v
+            return v_min
